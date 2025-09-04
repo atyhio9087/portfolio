@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+:root{
+--bg:#0b1020;
+--muted:#90a0c0;
+}
+
+
+html,body,#root{height:100%;}
+body{background:linear-gradient(180deg,#07102a 0%, #0b1020 100%);}
