@@ -43,57 +43,65 @@ function IntroOverlay({ onClose }) {
   )
 }
 
-/* ===== Room shell: white floor, white walls & ceiling ===== */
+/* ===== Room shell: white floor, walls & ceiling (thick walls) ===== */
 function RoomMesh({ xMin, xMax, zMin, zMax, yMax }) {
   const width = xMax - xMin
   const depth = zMax - zMin
   const wallColor = "#ffffff"
   const floorColor = "#f3f3f3"
+  const wallT = 0.3 // thickness of walls
 
   return (
     <group>
       {/* floor */}
-      <mesh position={[(xMin + xMax) / 2, 0, (zMin + zMax) / 2]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh
+        position={[(xMin + xMax) / 2, 0, (zMin + zMax) / 2]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
         <planeGeometry args={[width, depth]} />
         <meshStandardMaterial color={floorColor} />
       </mesh>
 
       {/* ceiling */}
-      <mesh position={[(xMin + xMax) / 2, yMax, (zMin + zMax) / 2]} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh
+        position={[(xMin + xMax) / 2, yMax, (zMin + zMax) / 2]}
+        rotation={[Math.PI / 2, 0, 0]}
+      >
         <planeGeometry args={[width, depth]} />
         <meshStandardMaterial color={wallColor} />
       </mesh>
 
-      {/* front wall (zMax) */}
-      <mesh position={[(xMin + xMax) / 2, yMax / 2, zMax]}>
-        <planeGeometry args={[width, yMax]} />
-        <meshStandardMaterial side={THREE.DoubleSide} color={wallColor} />
+      {/* front wall */}
+      <mesh position={[(xMin + xMax) / 2, yMax / 2, zMax + wallT / 2]}>
+        <boxGeometry args={[width, yMax, wallT]} />
+        <meshStandardMaterial color={wallColor} />
       </mesh>
 
-      {/* back wall (zMin) */}
-      <mesh position={[(xMin + xMax) / 2, yMax / 2, zMin]}>
-        <planeGeometry args={[width, yMax]} />
-        <meshStandardMaterial side={THREE.DoubleSide} color={wallColor} />
+      {/* back wall */}
+      <mesh position={[(xMin + xMax) / 2, yMax / 2, zMin - wallT / 2]}>
+        <boxGeometry args={[width, yMax, wallT]} />
+        <meshStandardMaterial color={wallColor} />
       </mesh>
 
       {/* left wall */}
-      <mesh position={[xMin, yMax / 2, (zMin + zMax) / 2]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[depth, yMax]} />
-        <meshStandardMaterial side={THREE.DoubleSide} color={wallColor} />
+      <mesh position={[xMin - wallT / 2, yMax / 2, (zMin + zMax) / 2]}>
+        <boxGeometry args={[wallT, yMax, depth]} />
+        <meshStandardMaterial color={wallColor} />
       </mesh>
 
       {/* right wall */}
-      <mesh position={[xMax, yMax / 2, (zMin + zMax) / 2]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[depth, yMax]} />
-        <meshStandardMaterial side={THREE.DoubleSide} color={wallColor} />
+      <mesh position={[xMax + wallT / 2, yMax / 2, (zMin + zMax) / 2]}>
+        <boxGeometry args={[wallT, yMax, depth]} />
+        <meshStandardMaterial color={wallColor} />
       </mesh>
     </group>
   )
 }
 
-/* ===== Visual partition wall with centered doorway opening ===== */
+/* ===== Partition wall with doorway, now thick ===== */
 function PartitionWall({ xMin, xMax, yMax, z = PARTITION_Z }) {
   const wallColor = "#ffffff"
+  const wallT = 0.3
   const width = xMax - xMin
   const sideW = (width - DOOR_WIDTH) / 2
 
@@ -101,22 +109,25 @@ function PartitionWall({ xMin, xMax, yMax, z = PARTITION_Z }) {
     <group>
       {/* Left segment */}
       <mesh position={[xMin + sideW / 2, yMax / 2, z]}>
-        <planeGeometry args={[sideW, yMax]} />
-        <meshStandardMaterial side={THREE.DoubleSide} color={wallColor} />
+        <boxGeometry args={[sideW, yMax, wallT]} />
+        <meshStandardMaterial color={wallColor} />
       </mesh>
+
       {/* Right segment */}
       <mesh position={[xMax - sideW / 2, yMax / 2, z]}>
-        <planeGeometry args={[sideW, yMax]} />
-        <meshStandardMaterial side={THREE.DoubleSide} color={wallColor} />
+        <boxGeometry args={[sideW, yMax, wallT]} />
+        <meshStandardMaterial color={wallColor} />
       </mesh>
+
       {/* Lintel above doorway */}
       <mesh position={[(xMin + xMax) / 2, (yMax + DOOR_HEIGHT) / 2, z]}>
-        <planeGeometry args={[DOOR_WIDTH, yMax - DOOR_HEIGHT]} />
-        <meshStandardMaterial side={THREE.DoubleSide} color={wallColor} />
+        <boxGeometry args={[DOOR_WIDTH, yMax - DOOR_HEIGHT, wallT]} />
+        <meshStandardMaterial color={wallColor} />
       </mesh>
     </group>
   )
 }
+
 
 /* ===== Ceiling Lights ===== */
 function CeilingLights({ room }) {
@@ -193,7 +204,62 @@ function WallFrame({ image, position, rotation, title, subtitle, onSelect }) {
   )
 }
 
-/* ===== Gallery: frames mounted flush on room-2 walls, with centered Experience/Education ===== */
+// /* ===== Gallery: frames mounted flush on room-2 walls, with centered Experience/Education ===== */
+// function Gallery({ onSelect }) {
+//   const sec = [
+//     { title: "About",      src: "/images/about.jpg" },
+//     { title: "Skills",     src: "/images/skills.jpg" },
+//     { title: "Experience", src: "/images/experience.jpg" },
+//     { title: "Education",  src: "/images/education.jpg" },
+//     { title: "Projects",   src: "/images/projects.jpg" },
+//     { title: "Contact",    src: "/images/contact.jpg" },
+//   ]
+
+//   const eps = 0.02
+//   const y   = 1.7
+
+//   // Front (partition) wall, gallery side
+//   const frontZ = PARTITION_Z - eps
+//   // Back wall
+//   const backZ  = WORLD.zMin + eps
+//   // Left & Right walls
+//   const leftX  = WORLD.xMin + eps   // face +X => rot -PI/2
+//   const rightX = WORLD.xMax - eps   // face -X => rot +PI/2
+//   const sideZ  = (WORLD.zMin + PARTITION_Z) / 2 // centered along z on side walls
+
+//   const frames = [
+//     // Front wall (two)
+//     { title: sec[0].title, src: sec[0].src, pos: [-3.0, y, frontZ], rot: [0, Math.PI, 0] }, // About
+//     { title: sec[1].title, src: sec[1].src, pos: [ 3.0, y, frontZ], rot: [0, Math.PI, 0] }, // Skills
+
+//     // LEFT wall centered (Experience)
+//     { title: sec[2].title, src: sec[2].src, pos: [leftX,  y, sideZ], rot: [0, Math.PI/2, 0] },
+
+//     // RIGHT wall centered (Education)
+//     { title: sec[3].title, src: sec[3].src, pos: [rightX, y, sideZ], rot: [0, -Math.PI/2, 0] },
+
+//     // Back wall (two)
+//     { title: sec[4].title, src: sec[4].src, pos: [-3.0, y, backZ], rot: [0, 0, 0] }, // Projects
+//     { title: sec[5].title, src: sec[5].src, pos: [ 3.0, y, backZ], rot: [0, 0, 0] }, // Contact
+//   ]
+
+//   return (
+//     <>
+//       {frames.map((f, i) => (
+//         <WallFrame
+//           key={i}
+//           image={f.src}
+//           title={f.title}
+//           // subtitle example: f.title === "Projects" ? "Selected Works" : undefined
+//           position={f.pos}
+//           rotation={f.rot}
+//           onSelect={onSelect}
+//         />
+//       ))}
+//     </>
+//   )
+// }
+
 function Gallery({ onSelect }) {
   const sec = [
     { title: "About",      src: "/images/about.jpg" },
@@ -207,29 +273,33 @@ function Gallery({ onSelect }) {
   const eps = 0.02
   const y   = 1.7
 
-  // Front (partition) wall, gallery side
-  const frontZ = PARTITION_Z - eps
-  // Back wall
+  // Back wall z position (slightly inset)
   const backZ  = WORLD.zMin + eps
-  // Left & Right walls
-  const leftX  = WORLD.xMin + eps   // face +X => rot -PI/2
-  const rightX = WORLD.xMax - eps   // face -X => rot +PI/2
-  const sideZ  = (WORLD.zMin + PARTITION_Z) / 2 // centered along z on side walls
+
+  // Left and right wall x positions (slightly inset)
+  const leftX  = WORLD.xMin + eps   // faces +X, rotation = -PI/2
+  const rightX = WORLD.xMax - eps   // faces -X, rotation = +PI/2
+
+  // Z positions to stack two frames on side walls (top, bottom)
+  const sideZTop = (PARTITION_Z + WORLD.zMin) / 2 - 2   // a bit closer to partition
+  const sideZBot = (PARTITION_Z + WORLD.zMin) / 2 + 2   // a bit further back
+
+  // X positions for two frames on back wall
+  const backXL = -3.0
+  const backXR =  3.0
 
   const frames = [
-    // Front wall (two)
-    { title: sec[0].title, src: sec[0].src, pos: [-3.0, y, frontZ], rot: [0, Math.PI, 0] }, // About
-    { title: sec[1].title, src: sec[1].src, pos: [ 3.0, y, frontZ], rot: [0, Math.PI, 0] }, // Skills
+    // LEFT wall (two frames: top, bottom)
+    { title: sec[2].title, src: sec[2].src, pos: [leftX,  y, sideZTop], rot: [0, Math.PI/2, 0] }, // Experience (top)
+    { title: sec[3].title, src: sec[3].src, pos: [leftX,  y, sideZBot], rot: [0, Math.PI/2, 0] }, // Education (bottom)
 
-    // LEFT wall centered (Experience)
-    { title: sec[2].title, src: sec[2].src, pos: [leftX,  y, sideZ], rot: [0, Math.PI/2, 0] },
+    // RIGHT wall (two frames: top, bottom)
+    { title: sec[0].title, src: sec[0].src, pos: [rightX, y, sideZTop], rot: [0,  -Math.PI/2, 0] }, // About (top)
+    { title: sec[1].title, src: sec[1].src, pos: [rightX, y, sideZBot], rot: [0,  -Math.PI/2, 0] }, // Skills (bottom)
 
-    // RIGHT wall centered (Education)
-    { title: sec[3].title, src: sec[3].src, pos: [rightX, y, sideZ], rot: [0, -Math.PI/2, 0] },
-
-    // Back wall (two)
-    { title: sec[4].title, src: sec[4].src, pos: [-3.0, y, backZ], rot: [0, 0, 0] }, // Projects
-    { title: sec[5].title, src: sec[5].src, pos: [ 3.0, y, backZ], rot: [0, 0, 0] }, // Contact
+    // BACK wall (two frames: left, right)
+    { title: sec[4].title, src: sec[4].src, pos: [backXL, y, backZ], rot: [0, 0, 0] }, // Projects (left)
+    { title: sec[5].title, src: sec[5].src, pos: [backXR, y, backZ], rot: [0, 0, 0] }, // Contact  (right)
   ]
 
   return (
@@ -239,7 +309,6 @@ function Gallery({ onSelect }) {
           key={i}
           image={f.src}
           title={f.title}
-          // subtitle example: f.title === "Projects" ? "Selected Works" : undefined
           position={f.pos}
           rotation={f.rot}
           onSelect={onSelect}
@@ -248,6 +317,8 @@ function Gallery({ onSelect }) {
     </>
   )
 }
+
+
 
 /* ===== Player Controls: pointer-lock mouselook + WASD, clamped to WORLD ===== */
 function PlayerControls({ enabled }) {
